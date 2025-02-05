@@ -300,13 +300,13 @@ regionCall <- function(
 ){
 	x <- lapply(X = x, FUN = "*", attr(x, "pct.overlap"))
 	rc_amp <- rc_del <- matrix(
-		data = 0L, 
+		data = NA_integer_, 
 		nrow = nrow(x$pct.amp), 
 		ncol = ncol(x$pct.amp), 
 		dimnames = dimnames(x$pct.amp)
 	)
-	rc_amp[is.na(x$pct.amp)] <- NA_integer_
-	rc_del[is.na(x$pct.del)] <- NA_integer_
+	rc_amp[!is.na(x$pct.amp)] <-  0L
+	rc_del[!is.na(x$pct.del)] <-  0L
 	rc_amp[x$pct.amp > brlen] <-  1L
 	rc_amp[x$pct.del > brlen] <- -1L
 	rc_del[x$pct.del > brlen] <- -1L

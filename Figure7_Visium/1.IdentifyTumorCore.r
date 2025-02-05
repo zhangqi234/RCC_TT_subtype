@@ -84,8 +84,7 @@ for(st_file in st_list){
 	ggsave(
 		p, 
 		width = 4, height = 3, 
-		file = sprintf("%splot_cluster.png", s_name)
-	)
+		file = sprintf("%splot_cluster.png", s_name))
 
 
 	## ----------
@@ -94,23 +93,20 @@ for(st_file in st_list){
 	# Attach CopyKAT predictions to the Seurat object
 	obj$copykat <- with(
 		copykat$prediction, 
-		copykat.pred[match(colnames(obj), cell.names)]
-	)
+		copykat.pred[match(colnames(obj), cell.names)])
 	if(anyNA(obj$copykat.pred))
 		stop("Something went wrong")
 	if(!is.factor(obj$copykat.pred))
 		obj$copykat.pred <- factor(
 			obj$copykat.pred, 
-			levels = c("aneuploid", "diploid", "not.defined")
-		)
+			levels = c("aneuploid", "diploid", "not.defined"))
 	# Diagnostic plot: CopyKAT predictions
 	p <- SpatialDimPlot(obj, group.by = "copykat.pred", stroke = 0)
 	p <- p + scale_fill_manual(values = ploidy_colors)
 	ggsave(
 		p, 
 		width = 4, height = 3, 
-		file = sprintf("%splot_ploidy.png", s_name)
-	)
+		file = sprintf("%splot_ploidy.png", s_name))
 
 
 	## ----------
@@ -126,23 +122,19 @@ for(st_file in st_list){
 		X = split(
 			x = as.matrix(ct_frac), 
 			f = sc_ref$annotations, 
-			drop = TRUE
-		), 
+			drop = TRUE), 
 		FUN = matrix, 
-		ncol = ncol(ct_frac)
-	)
+		ncol = ncol(ct_frac))
 	ct_frac_merge1 <- do.call(
 		what = rbind, 
-		args = lapply(X = ct_frac_split1, FUN = colSums)
-	)
+		args = lapply(X = ct_frac_split1, FUN = colSums))
 	colnames(ct_frac_merge1) <- colnames(ct_frac)
 	# Normalize cell fraction, so that they sum to 1 for each spot
 	ct_frac_merge1 <- sweep(
 		x = ct_frac_merge1, 
 		MARGIN = 2, 
 		STATS = colSums(ct_frac_merge1), 
-		FUN = "/"
-	)
+		FUN = "/")
 	if(anyNA(ct_frac_merge1))
 		stop("Something went wrong")
 
@@ -151,23 +143,19 @@ for(st_file in st_list){
 		X = split(
 			x = as.matrix(ct_frac), 
 			f = sc_ref$subcluster, 
-			drop = TRUE
-		), 
+			drop = TRUE), 
 		FUN = matrix, 
-		ncol = ncol(ct_frac)
-	)
+		ncol = ncol(ct_frac))
 	ct_frac_merge2 <- do.call(
 		what = rbind, 
-		args = lapply(X = ct_frac_split2, FUN = colSums)
-	)
+		args = lapply(X = ct_frac_split2, FUN = colSums))
 	colnames(ct_frac_merge2) <- colnames(ct_frac)
 	# Normalize cell fraction, so that they sum to 1 for each spot
 	ct_frac_merge2 <- sweep(
 		x = ct_frac_merge2, 
 		MARGIN = 2, 
 		STATS = colSums(ct_frac_merge2), 
-		FUN = "/"
-	)
+		FUN = "/")
 	if(anyNA(ct_frac_merge2))
 		stop("Something went wrong")
 	# To avoid 0 * log2(0) = NaN in entropy estimation, set 0s to 1e-5
@@ -177,7 +165,9 @@ for(st_file in st_list){
 		ct_frac_merge2["LOXpos", ] + ct_frac_merge2["LOXneg", ], 
 		tolerance = 1e-3
 	))) stop("Something went wrong")
-	saveRDS(as.data.frame(t(ct_frac_merge2)), file = sprintf("%scluster_subcluster.rds", s_name))
+	saveRDS(
+		as.data.frame(t(ct_frac_merge2)), 
+		file = sprintf("%scluster_subcluster.rds", s_name))
 
 	# Diagnostic plot: major lineage fractions
 	meta_cols <- sprintf("frac_%s", rownames(ct_frac_merge1))
@@ -187,37 +177,31 @@ for(st_file in st_list){
 	ggsave(
 		p, 
 		width = 9, height = 3 * n_row, 
-		file = sprintf("%splot_frac.png", s_name)
-	)
+		file = sprintf("%splot_frac.png", s_name))
 
 	# Diagnostic plot: marker gene expression
 	p <- SpatialFeaturePlot(
 		obj, 
 		features = c(
 			"CA9", "PTPRC", "CD8A", "CD4", "CD79A", 
-			"LYZ", "PECAM1", "ACTA2"
-		), 
+			"LYZ", "PECAM1", "ACTA2"), 
 		stroke = 0, 
-		ncol = 3
-	)
+		ncol = 3)
 	ggsave(
 		p, 
 		width = 9, height = 9, 
-		file = sprintf("%splot_exp.png", s_name)
-	)
+		file = sprintf("%splot_exp.png", s_name))
 
 	# Diagnostic plot: QC metrics
 	p <- SpatialFeaturePlot(
 		obj, 
 		features = c("nCount_Spatial", "nFeature_Spatial"), 
 		stroke = 0, 
-		ncol = 2
-	)
+		ncol = 2)
 	ggsave(
 		p, 
 		width = 6, height = 3, 
-		file = sprintf("%splot_QC.png", s_name)
-	)
+		file = sprintf("%splot_QC.png", s_name))
 
 
 	## ----------
@@ -227,28 +211,25 @@ for(st_file in st_list){
 	# Genomic positions to genomic regions
 	gp <- GPos(
 		seqnames = Rle(copykat$CNAmat$chrom), 
-		pos = copykat$CNAmat$chrompos
-	)
+		pos = copykat$CNAmat$chrompos)
 	gp <- sort(gp)
 	gr <- lapply(
 		X = split(x = gp, f = seqnames(gp)), 
 		FUN = function(g){
-			r <- as(g[-length(g)], "GRanges")
-			end(r) <- start(g)[-1] - 1L
+			r <- as(g, "GRanges")
+			start(r) <- c(0L, end(r)[-length(r)]) + 1L
 			return(r)
 		}
 	)
 	gr <- do.call(c, unname(gr))
+	gr <- gr[width(gr) != 0L]
 	copykat_res <- SummarizedExperiment(
 		rowRanges = gr, 
 		assays = list(
 			diff = matrix(
 				NA_real_, 
 				nrow = length(gr), ncol = ncol(obj), 
-				dimnames = list(NULL, colnames(obj))
-			)
-		)
-	)
+				dimnames = list(NULL, colnames(obj)))))
 	CNAmat <- with(
 		copykat, {
 			tmp <- CNAmat
@@ -257,8 +238,7 @@ for(st_file in st_list){
 				rownames(prediction)
 			)]
 			data.matrix(tmp[, !is.na(colnames(tmp))]) * 2L
-		}
-	)
+		})
 	if(anyNA(CNAmat))
 		stop("Something went wrong")
 	o <- findOverlaps(query = gp, subject = gr)
@@ -273,8 +253,7 @@ for(st_file in st_list){
 		baseline = 0, 
 		ta = 0.1, 
 		td = 0.1, 
-		minoverlap = 0.7
-	)
+		minoverlap = 0.7)
 	arm_call <- regionCall(arm_frac, brlen = 0.5)
 	if(!all(colnames(arm_call) == colnames(obj)))
 		stop("Something went wrong")
@@ -309,14 +288,12 @@ to_plot$SME.cluster <- factor(
 	levels = rev(sprintf(
 		"niche%d", 
 		seq_len(length(unique(to_plot$SME.cluster))) - 1
-	))
-)
+	)))
 cluster_colors <- setNames(
 	cluster_colors_all[seq.int(nlevels(to_plot$SME.cluster))], 
-	levels(to_plot$SME.cluster)
-)
+	levels(to_plot$SME.cluster))
 
-# Left
+# Left panel
 to_p1 <- data.frame(
 	orig.ident = to_plot$orig.ident, 
 	SME.cluster = to_plot$SME.cluster, 
@@ -350,7 +327,7 @@ p1_list <- lapply(
 	}
 )
 
-# Middle
+# Middle panel
 p2 <- ggviolin(
 	data = to_plot, 
 	x = "SME.cluster", 
@@ -359,51 +336,50 @@ p2 <- ggviolin(
 	outlier.shape = 20, 
 	outlier.size = 1, 
 	palette = cluster_colors, 
-	orientation = "horizontal"
-)
+	orientation = "horizontal")
 p2 <- p2 + facet_grid(orig.ident~., scales = "free", space = "free")
 p2 <- p2 + labs(fill = NULL, x = NULL) + theme(legend.position = "none")
 
-# Right: chr3
+# Right panel: chr3
 if(!all(to_plot[["chr3:p"]] %in% c(-1, 0, 1)))
 	stop("Something went wrong")
-p3 <- ggcrosstab(
+# Something like na.omit.
+#to_plot_CNA <- to_plot[obj$copykat.pred != "not.defined", ]
+to_plot_CNA <- to_plot
+p3 <- ggplot() + geom_bar(
 	data = data.frame(
-		SME.cluster = to_plot$SME.cluster, 
-		orig.ident = to_plot$orig.ident, 
+		SME.cluster = to_plot_CNA$SME.cluster, 
+		orig.ident = to_plot_CNA$orig.ident, 
 		chr3p = factor(
-			c("Loss", "Neutral", "Gain")[to_plot[["chr3:p"]] + 2L], 
+			c("Loss", "Neutral", "Gain")[to_plot_CNA[["chr3:p"]] + 2L], 
 			levels = c("Gain", "Neutral", "Loss")
 		)
 	), 
-	x = "SME.cluster", 
-	fill = "chr3p", 
-	orientation = "horizontal", 
-	palette = c("Loss" = "blue", "Neutral" = "grey", "Gain" = "red"), 
-	method = NULL
+	mapping = aes(y = SME.cluster, fill = chr3p), 
+	orientation = "y", 
+	stat = "count", position = "fill"
 )
-p3$layers[[2]] <- NULL
+p3 <- p3 + scale_fill_manual(values = c("Loss" = "blue", "Neutral" = "grey", "Gain" = "red"))
 p3 <- p3 + facet_grid(orig.ident~., scales = "free", space = "free")
 p3 <- p3 + labs(y = "Pct. spots with 3p loss") + theme(legend.position = "bottom")
-# Right: chr5
+# Right panel: chr5
 if(!all(to_plot[["chr5:q"]] %in% c(-1, 0, 1)))
 	stop("Something went wrong")
-p4 <- ggcrosstab(
+to_plot_CNA <- to_plot
+p3 <- ggplot() + geom_bar(
 	data = data.frame(
-		SME.cluster = to_plot$SME.cluster, 
-		orig.ident = to_plot$orig.ident, 
+		SME.cluster = to_plot_CNA$SME.cluster, 
+		orig.ident = to_plot_CNA$orig.ident, 
 		chr5q = factor(
-			c("Loss", "Neutral", "Gain")[to_plot[["chr5:q"]] + 2L], 
+			c("Loss", "Neutral", "Gain")[to_plot_CNA[["chr5:q"]] + 2L], 
 			levels = c("Gain", "Neutral", "Loss")
 		)
 	), 
-	x = "SME.cluster", 
-	fill = "chr5q", 
-	orientation = "horizontal", 
-	palette = c("Loss" = "blue", "Neutral" = "grey", "Gain" = "red"), 
-	method = NULL
+	mapping = aes(y = SME.cluster, fill = chr5q), 
+	orientation = "y", 
+	stat = "count", position = "fill"
 )
-p4$layers[[2]] <- NULL
+p4 <- p4 + scale_fill_manual(values = c("Loss" = "blue", "Neutral" = "grey", "Gain" = "red"))
 p4 <- p4 + facet_grid(orig.ident~., scales = "free", space = "free")
 p4 <- p4 + labs(y = "Pct. spots with 5q gain") + theme(legend.position = "bottom")
 
