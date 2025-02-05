@@ -23,8 +23,8 @@ SOFTWARE.
 '
 
 # Dependencies
+library("ggplot2")
 stopifnot(all(c(
-	"ggplot2", 
 	"patchwork", 
 	"viridis", 
 	"ggforce"
